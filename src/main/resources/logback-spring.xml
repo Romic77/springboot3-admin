@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="60 seconds">
+
+    <springProperty scope="context" name="LOG_HOME" source="logging.file.path" defaultValue="meow-ai-admin/logs"/>
+    <!-- 彩色日志(IDE下载插件才可以生效) -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr"
+                    class="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!-- 增强型转换规则 -->
+    <conversionRule conversionWord="clr"
+                    class="org.springframework.boot.logging.logback.ColorConverter">
+        <color name="SQL" value="38;5;208" />    <!-- SQL语句橙色高亮 -->
+        <color name="ERROR" value="1;31" />      <!-- 错误日志红色加强 -->
+    </conversionRule>
+
+
+    <!--✨ 彩色日志配置（简化版） -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr(%thread){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+
+    <!--✨ 控制台输出（使用标准PatternLayout） -->
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--✨ 统一日志文件配置 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>30GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--✨ 按级别过滤的Appender -->
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--✨ 异步日志配置 -->
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>20</discardingThreshold>
+        <queueSize>4096</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+
+
+    <!-- 项目 Mapper 日志 -->
+    <logger name="com.meow.admin.mapper" level="DEBUG" additivity="false">
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <!--  不打印这个日志 -->
+    <Logger name="com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner"
+            level="INFO" additivity="false">
+        <AppenderRef ref="stdout"/>
+    </Logger>
+
+    <Logger name="com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor"
+            level="INFO" additivity="false">
+        <AppenderRef ref="stdout"/>
+    </Logger>
+
+
+
+    <!--✨ Root日志配置 -->
+    <root level="INFO">
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="ERROR"/>
+    </root>
+</configuration>
